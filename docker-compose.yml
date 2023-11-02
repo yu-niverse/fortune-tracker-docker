@@ -1,0 +1,31 @@
+version: '3'
+services:
+  MariaDB:
+    image: mariadb:10-jammy
+    container_name: ${MARIADB_CONTAINER_NAME}
+    restart: always
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    ports:
+      - ${MARIADB_PORT}:${MARIADB_PORT}
+    volumes:
+      - ./mariadb/data:/var/lib/mariadb
+      - ./mariadb/conf:/etc/mariadb/conf.d
+      - ./mariadb/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  MongoDB:
+    image: mongo:6-jammy
+    container_name: ${MONGODB_CONTAINER_NAME}
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    command: ["mongod", "--bind_ip_all"] 
+    ports:
+      - ${MONGODB_PORT}:${MONGODB_PORT}
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
