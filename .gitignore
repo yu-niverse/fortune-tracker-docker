@@ -1,3 +1,4 @@
 *.env
 mariadb/data/
 mongodb/data/
+api/logs/

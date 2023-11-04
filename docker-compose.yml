@@ -1,8 +1,22 @@
 version: '3'
 services:
+  Nginx:
+    image: nginx:latest
+    container_name: ${NGINX_HOSTNAME}
+    ports:
+      - 80:80
+    volumes:
+      - ./volumes/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - MariaDB
+      - MongoDB
+      - API
+    networks:
+      - fortune-net
+
   MariaDB:
     image: mariadb:10-jammy
-    container_name: ${MARIADB_CONTAINER_NAME}
+    container_name: ${MARIADB_HOSTNAME}
     restart: always
     environment:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
@@ -15,17 +29,41 @@ services:
       - ./mariadb/data:/var/lib/mariadb
       - ./mariadb/conf:/etc/mariadb/conf.d
       - ./mariadb/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - fortune-net
 
   MongoDB:
     image: mongo:6-jammy
-    container_name: ${MONGODB_CONTAINER_NAME}
+    container_name: ${MONGODB_HOSTNAME}
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
     command: ["mongod", "--bind_ip_all"] 
     ports:
       - ${MONGODB_PORT}:${MONGODB_PORT}
     volumes:
       - ./mongodb/data:/data/db
       - ./mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - fortune-net
+
+  API:
+    image: chiehyu914/fortune-tracker:latest
+    container_name: ${API_HOST}
+    restart: always
+    ports: 
+      - ${API_PORT}:${API_PORT}
+    env_file:
+      - ./app.env
+    volumes:
+      - ./api/logs:/app/logs
+    depends_on:
+      - MariaDB
+      - MongoDB
+    networks:
+      - fortune-net
+  
+networks:
+  fortune-net:
+    driver: bridge
