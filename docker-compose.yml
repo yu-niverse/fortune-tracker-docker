@@ -6,7 +6,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./volumes/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
       - MariaDB
       - MongoDB
