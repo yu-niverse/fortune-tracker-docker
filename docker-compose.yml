@@ -8,9 +8,12 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      - MariaDB
-      - MongoDB
-      - API
+      MongoDB:
+        condition: service_started
+      MariaDB:
+        condition: service_healthy
+      API:
+        condition: service_started
     networks:
       - fortune-net
 
@@ -29,6 +32,11 @@ services:
       - ./mariadb/data:/var/lib/mariadb
       - ./mariadb/conf:/etc/mariadb/conf.d
       - ./mariadb/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -P ${MARIADB_PORT} -u${MARIADB_USER} -p${MARIADB_PASSWORD} | grep 'mysqld is alive' || exit 1"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
     networks:
       - fortune-net
 
@@ -59,8 +67,10 @@ services:
     volumes:
       - ./api/logs:/app/logs
     depends_on:
-      - MariaDB
-      - MongoDB
+      MongoDB:
+        condition: service_started
+      MariaDB:
+        condition: service_healthy
     networks:
       - fortune-net
   
